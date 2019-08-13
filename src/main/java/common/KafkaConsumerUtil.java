@@ -5,11 +5,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Properties;
 
 /**
- * @Description TODO
+ * @Description 通用消费者
  * @Author zhangdanyang02
  * @Date 2019/8/13 16:16
  **/
