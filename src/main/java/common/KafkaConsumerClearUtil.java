@@ -64,9 +64,9 @@ public class KafkaConsumerClearUtil {
 
     //清除kafka数据
     public static void main(String[] args) {
-        String topic = "hdp_ubu_xxzl_hunterpic";
-        String clientId = "hdp_ubu_xxzl-hdp_ubu_xxzl_hunterpic-Cm1pQ";
-        String groupId = "hdp_ubu_xxzl_kingy@133";
+        String topic = "hdp_ubu_xxzl_devicefp_sandbox";
+        String clientId = "hdp_ubu_xxzl-hdp_ubu_xxzl_devicefp_sandbox-qYqIe";
+        String groupId = "hdp_ubu_xxzl_kingy@394";
         try {
             init(topic, clientId, groupId);
             consumer();
