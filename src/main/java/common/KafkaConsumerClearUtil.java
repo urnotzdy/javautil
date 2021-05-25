@@ -64,9 +64,9 @@ public class KafkaConsumerClearUtil {
 
     //清除kafka数据
     public static void main(String[] args) {
-        String topic = "hdp_ubu_xxzl_devicefp_sandbox";
-        String clientId = "hdp_ubu_xxzl-hdp_ubu_xxzl_devicefp_sandbox-qYqIe";
-        String groupId = "hdp_ubu_xxzl_kingy@394";
+        String topic = "hdp_ubu_xxzl_teemo_app_crawl";
+        String clientId = "hdp_ubu_xxzl-hdp_ubu_xxzl_teemo_app_crawl-k500J";
+        String groupId = "hdp_ubu_xxzl_teemo_app_crawl_groupId_offline_online";
         try {
             init(topic, clientId, groupId);
             consumer();
@@ -94,6 +94,7 @@ public class KafkaConsumerClearUtil {
 
         @Override
         public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+            System.out.println(partitions);
             consumer.seekToEnd(partitions);
         }
     }
