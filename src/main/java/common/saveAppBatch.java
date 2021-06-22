@@ -133,7 +133,7 @@ public class saveAppBatch {
                 appSpecialBean.setOperUser(user);
                 appSpecialBean.setStatus(1);
                 appSpecialBean.setUpdateTime(new Date());
-                appSpecialBean.setTypeSrc(2);
+                appSpecialBean.setTypeSrc(3);
                 try {
                     APP_SPECIAL_SERVICE.save(appSpecialBean);
                 } catch (Exception e) {
@@ -157,7 +157,7 @@ public class saveAppBatch {
                 appCommonBean.setOperUser(user);
                 appCommonBean.setStatus(1);
                 appCommonBean.setUpdateTime(new Date());
-                appCommonBean.setTypeSrc(2);
+                appCommonBean.setTypeSrc(3);
                 try {
                     APP_COMMON_SERVICE.save(appCommonBean);
                 } catch (Exception e) {
@@ -170,7 +170,7 @@ public class saveAppBatch {
 
     public static void main(String[] args) {
         SCFInit.initScfKeyByValue("ayqGhwiFRHkquhy50nM9OwdJG5tHjgXn");
-        String path = "/Users/zhangdanyang/Documents/批量上传app示例.xlsx";
+        String path = "/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/反作弊/网赚类APP.xlsx";
         int rowNum = 1;
         Integer[] totalCols = new Integer[]{0, 1, 2, 3, 4, 5, 6};
         List<Integer> columns = Arrays.asList(totalCols);

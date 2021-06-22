@@ -1,9 +1,11 @@
 package common;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bj58.spat.scf.client.SCFInit;
 import com.bj58.spat.scf.client.proxy.builder.ProxyFactory;
 import com.bj58.xxzl.teemodfp.contract.ITeemoAppCommonService;
 import com.bj58.xxzl.teemodfp.contract.ITeemoAppSpecialService;
+import com.bj58.xxzl.teemodfp.contract.ITeemoFpService;
 import com.bj58.xxzl.teemodfp.entity.AppCommonBean;
 import com.bj58.xxzl.teemodfp.entity.AppSpecialBean;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
@@ -20,8 +22,7 @@ import java.util.*;
 
 public class getCidClient {
 
-    public static ITeemoAppCommonService APP_COMMON_SERVICE = ProxyFactory.create(ITeemoAppCommonService.class, "tcp://teemodb/TeemoAppCommonService");
-    public static ITeemoAppSpecialService APP_SPECIAL_SERVICE = ProxyFactory.create(ITeemoAppSpecialService.class, "tcp://teemodb/TeemoAppSpecailService");
+    public static ITeemoFpService FP_SERVICE = ProxyFactory.create(ITeemoFpService.class, "tcp://teemodfp/TeemoFpServiceImpl");
 
     /**
      * @param path    文件路径
@@ -99,77 +100,55 @@ public class getCidClient {
         return resultMap;
     }
 
-    public static void save(Map<Integer, List<String>> vals){
+    public static void save(Map<Integer, List<String>> vals) {
+        List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
         vals.forEach((row, colVals) -> {
-            System.out.println("行" + row + "的数据保存开始");
-            if (colVals.size() != 7) {
-                System.out.println("行" + row + "的数据不对，值为：" + colVals);
+            String cid = colVals.get(0).trim();
+            System.out.println("行" + row + "的数据保存开始," + "col:" + cid);
+            try {
+                String cidDetail = FP_SERVICE.checkCidValid(cid);
+                if (cidDetail != "") {
+                    JSONObject jsonObject = JSONObject.parseObject(cidDetail);
+                    JSONObject detail = jsonObject.getJSONObject("data");
+                    if (detail != null) {
+                        String client = detail.getString("client");
+                        if ("" != client) {
+                            switch (client) {
+                                case "1":
+                                    client= "IOS";
+                                    break;
+                                case "2":
+                                    client=  "Android";
+                                    break;
+                                case "3":
+                                    client= "PCM";
+                                    break;
+                                case "4":
+                                    client=  "小程序";
+                                    break;
+                                default:
+                                    client= "";
+                            }
+                        }
+                        Map<String, String> tempMap = new HashMap<String, String>();
+                        tempMap.put("cid",cid);
+                        tempMap.put("client",client);
+                        dataList.add(tempMap);
+//                        Thread.sleep(1);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            int appType = Integer.valueOf(colVals.get(0).trim());
-            String appName = colVals.get(1).trim();
-            String pkgName = colVals.get(2).trim();
-            String client = colVals.get(3).trim();
-            String typeId = colVals.get(4).trim();
-            String installCStr = colVals.get(5).trim();
-            String desc = colVals.get(6).trim();
-            String user = "zhangdanyang02";
-            if (appType == 1) {
-                //专项类
-                AppSpecialBean appSpecialBean = new AppSpecialBean();
-                appSpecialBean.setAppName(appName);
-                appSpecialBean.setPkgName(pkgName);
-                if ("aos".equals(client)) {
-                    appSpecialBean.setClientType(2);
-                } else if ("ios".equals(client)) {
-                    appSpecialBean.setClientType(1);
-                }
-                appSpecialBean.setTypeId(typeId);
-                if (!"".equals(installCStr)) {
-                    appSpecialBean.setCidInstallCt(Integer.parseInt(installCStr));
-                }
-                appSpecialBean.setAppDesc(desc);
-                appSpecialBean.setAddTime(new Date());
-                appSpecialBean.setOperUser(user);
-                appSpecialBean.setStatus(1);
-                appSpecialBean.setUpdateTime(new Date());
-                appSpecialBean.setTypeSrc(2);
-                try {
-                    APP_SPECIAL_SERVICE.save(appSpecialBean);
-                } catch (Exception e) {
-                    System.out.println("行" + row + "的数据保存失败，值为：" + colVals);
-                }
-            } else if (appType == 2) {
-                AppCommonBean appCommonBean = new AppCommonBean();
-                appCommonBean.setAppName(appName);
-                appCommonBean.setPkgName(pkgName);
-                if ("aos".equals(client)) {
-                    appCommonBean.setClientType(2);
-                } else if ("ios".equals(client)) {
-                    appCommonBean.setClientType(1);
-                }
-                appCommonBean.setTypeId(typeId);
-                if (!"".equals(installCStr)) {
-                    appCommonBean.setCidInstallCt(Integer.parseInt(installCStr));
-                }
-                appCommonBean.setAppDesc(desc);
-                appCommonBean.setAddTime(new Date());
-                appCommonBean.setOperUser(user);
-                appCommonBean.setStatus(1);
-                appCommonBean.setUpdateTime(new Date());
-                appCommonBean.setTypeSrc(2);
-                try {
-                    APP_COMMON_SERVICE.save(appCommonBean);
-                } catch (Exception e) {
-                    System.out.println("行" + row + "的数据保存失败，值为：" + colVals);
-                }
-            }
-            System.out.println("行" + row + "的数据保存成功");
+//            System.out.println("行" + row + "的数据保存成功");
         });
+        List<String> columnNames = Arrays.asList("cid","client");
+        ExcelUtil.writeExcel(dataList,columnNames,"/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/反作弊数据分析/cid-client2.xlsx");
     }
 
     public static void main(String[] args) {
-        SCFInit.initScfKeyByValue("ayqGhwiFRHkquhy50nM9OwdJG5tHjgXn");
-        String path = "/Users/zhangdanyang/Documents/批量上传app示例.xlsx";
+        SCFInit.initScfKeyByValue("zBbi2/AiI1u6fcf2oM4P+kmsrKP3EAPT");
+        String path = "/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/反作弊数据分析/未关联到的cid1.xlsx";
         int rowNum = 1;
         Integer[] totalCols = new Integer[]{0, 1, 2, 3, 4, 5, 6};
         List<Integer> columns = Arrays.asList(totalCols);
