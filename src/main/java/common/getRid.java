@@ -3,11 +3,11 @@ package common;
 import com.alibaba.fastjson.JSONObject;
 import com.bj58.spat.scf.client.SCFInit;
 import com.bj58.spat.scf.client.proxy.builder.ProxyFactory;
-import com.bj58.xxzl.teemodfp.contract.ITeemoAppCommonService;
-import com.bj58.xxzl.teemodfp.contract.ITeemoAppSpecialService;
 import com.bj58.xxzl.teemodfp.contract.ITeemoFpService;
-import com.bj58.xxzl.teemodfp.entity.AppCommonBean;
-import com.bj58.xxzl.teemodfp.entity.AppSpecialBean;
+import com.bj58.xxzl.teemodfp.entity.TeemoResponse;
+import org.apache.commons.codec.Charsets;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.util.NumberToTextConverter;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -15,12 +15,14 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class getCidClient {
+public class getRid {
 
     public static ITeemoFpService FP_SERVICE = ProxyFactory.create(ITeemoFpService.class, "tcp://teemodfp/TeemoFpServiceImpl");
 
@@ -106,49 +108,31 @@ public class getCidClient {
             String cid = colVals.get(0).trim();
             System.out.println("行" + row + "的数据保存开始," + "col:" + cid);
             try {
-                String cidDetail = FP_SERVICE.checkCidValid(cid);
-                System.out.println(cid+"==="+cidDetail);
-                if (cidDetail != "") {
-                    JSONObject jsonObject = JSONObject.parseObject(cidDetail);
-                    JSONObject detail = jsonObject.getJSONObject("data");
-                    if (detail != null) {
-                        String client = detail.getString("client");
-                        if ("" != client) {
-                            switch (client) {
-                                case "1":
-                                    client= "IOS";
-                                    break;
-                                case "2":
-                                    client=  "Android";
-                                    break;
-                                case "3":
-                                    client= "PCM";
-                                    break;
-                                case "4":
-                                    client=  "小程序";
-                                    break;
-                                default:
-                                    client= "未查到端";
-                            }
-                        }
+                TeemoResponse teemoResponse = FP_SERVICE.getRidByCid("teemo",cid);//checkCidValid(cid);
+
+                if (teemoResponse.getCode() == 200) {
+                    String rid =teemoResponse.getData();
+                    if("".equals(rid)){
                         Map<String, String> tempMap = new HashMap<String, String>();
                         tempMap.put("cid",cid);
-                        tempMap.put("client",client);
+                        tempMap.put("rid",rid);
                         dataList.add(tempMap);
-//                        Thread.sleep(1);
                     }else {
+                        rid = decryptStr(rid, "7F8591BFEDBDB546");
+                        System.out.println(cid + "===" + rid);
                         Map<String, String> tempMap = new HashMap<String, String>();
-                        tempMap.put("cid",cid);
-                        tempMap.put("client","cid不合法");
+                        tempMap.put("cid", cid);
+                        tempMap.put("rid", rid);
                         dataList.add(tempMap);
                     }
+////
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
 //            System.out.println("行" + row + "的数据保存成功");
         });
-        List<String> columnNames = Arrays.asList("cid","client");
+        List<String> columnNames = Arrays.asList("cid","rid");
         ExcelUtil.writeExcel(dataList,columnNames,"/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/反作弊数据分析/cid-client2.xlsx");
     }
 
@@ -164,6 +148,19 @@ public class getCidClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String decryptStr(String target, String salt) {
+        try {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(salt.getBytes(Charsets.UTF_8), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+            byte[] resultBytes = cipher.doFinal(Base64.decodeBase64(target));
+            return new String(resultBytes, "UTF-8");
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
+        return null;
     }
 
 }

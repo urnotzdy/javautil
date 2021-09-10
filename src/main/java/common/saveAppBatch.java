@@ -170,7 +170,7 @@ public class saveAppBatch {
 
     public static void main(String[] args) {
         SCFInit.initScfKeyByValue("ayqGhwiFRHkquhy50nM9OwdJG5tHjgXn");
-        String path = "/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/反作弊/网赚类APP.xlsx";
+        String path = "/Users/zhangdanyang/Desktop/文档/项目文档/设备指纹/app列表/灰产、58同类、房产经纪人App.xlsx";
         int rowNum = 1;
         Integer[] totalCols = new Integer[]{0, 1, 2, 3, 4, 5, 6};
         List<Integer> columns = Arrays.asList(totalCols);
